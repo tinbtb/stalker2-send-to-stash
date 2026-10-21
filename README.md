@@ -2,7 +2,9 @@
 
 Native ASI test build for S.T.A.L.K.E.R. 2. Adds **Send to your stash** to the existing inventory right-click menu, from anywhere. No UE4SS dependency and no replacement game assets.
 
-The implementation uses the personal-stash container identified from the premium-edition Journalist flash-drive reward, then calls the game's existing item-transfer/stack-selection path. It only offers the action for carried items whose native Drop permission allows it and whose Unequip action is not visible. The author reported successful in-game operation on October 21, 2026. Detailed coverage of save/reload persistence and item-state preservation has not been recorded.
+The implementation uses the personal-stash container identified from the premium-edition Journalist flash-drive reward, then calls the game's existing item-transfer/stack-selection path. It only offers the action for carried items whose native Drop permission allows it and whose Unequip action is not visible.
+
+Beta `v0.1.0-beta.1`: the author confirmed in-game operation on October 21, 2026, including save/reload persistence, partial-stack transfers, stack cancellation, and retention of weapon condition, attachments, and ammunition. Weapon upgrade retention has not been separately confirmed.
 
 ## Current test
 
@@ -19,13 +21,13 @@ Supported executable SHA-256: `61bc1e030740cebc30cf1dad0c86cf65e39e12ff050022582
 
 To uninstall this test, close the game and remove only `SendToStash.asi` from `Stalker2/Binaries/Win64` (or restore the prior-copy backup listed in `build/installation.json`). Leave the existing loader and other plugins alone.
 
-Test on a manual save: right-click one ordinary carried item, send it, and confirm it disappears from inventory and appears in a base's personal stash. Then check a partial stack with the quantity selector and cancellation. Finally verify another stash location and save/reload. Weapon condition, upgrades, attachments, and loaded ammunition need explicit comparison before calling this ready for release.
+For regression testing on future game builds, use a manual save: right-click one ordinary carried item, send it, and confirm it disappears from inventory and appears in a base's personal stash. Check partial-stack transfers and cancellation, another stash location, save/reload, and weapon condition, upgrades, attachments, and loaded ammunition.
 
 ## Build and evidence
 
 GitHub Actions builds `SendToStash.asi` on Windows using the same script, Zig 0.15.2, vendored MinHook, and checked-in game profile. Each push, pull request, or manual run produces a `SendToStash-windows-x64` artifact containing both ZIP variants and their SHA-256 checksums. Download it from the run's Artifacts section. `tools/package.py` downloads the official loader, verifies its pinned archive and DLL checksums, and verifies both ZIPs.
 
-Pushing a version tag such as `v0.1.0-alpha.2` also publishes a GitHub prerelease after all build checks pass. Release assets include both ZIP variants and their checksum file. To publish manually, run this workflow with an existing `v*` tag selected. Existing releases are not overwritten. Branch builds only upload Actions artifacts. Prerelease status is retained until the remaining validation coverage is confirmed.
+Pushing a version tag such as `v0.1.0-beta.1` also publishes a GitHub prerelease after all build checks pass. Release assets include both ZIP variants and their checksum file. To publish manually, run this workflow with an existing `v*` tag selected. Existing releases are not overwritten. Branch builds only upload Actions artifacts. Beta builds remain marked as prereleases.
 
 CI checks the DLL exports/imports and runs the unsupported-host guard. It does not require or distribute the game executable, and does not test gameplay. Debug information includes build paths, so the CI ASI is not guaranteed byte-identical to a local build. The menu label is currently English-only, without a localization SID.
 

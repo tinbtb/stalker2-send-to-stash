@@ -74,11 +74,13 @@ jobs:
           sha256sum --check SHA256SUMS.txt
           cd ..
           cat > release-notes.md <<'EOF'
-          Native SendToStash ASI test build. No UE4SS dependency.
+          Native SendToStash ASI beta build. No UE4SS dependency.
 
           Choose SendToStash-ASI-only.zip if an ASI loader is already installed. Otherwise choose SendToStash-ASI-with-loader.zip, which includes Ultimate ASI Loader 9.7.4 as winhttp.dll. Both include installation guidance, checksums, and applicable licenses.
 
-          CI validated the DLL, unsupported-host guard, loader checksums, and ZIP contents. The author reports successful in-game operation. Detailed save-persistence and item-state coverage is not recorded. The menu label is English-only. See README for the supported executable and test instructions.
+          Confirmed in-game by the author on October 21, 2026: save/reload persistence, partial-stack transfers, stack cancellation, and retention of weapon condition, attachments, and ammunition. Weapon upgrade retention has not been separately confirmed.
+
+          CI validated the DLL, unsupported-host guard, loader checksums, and ZIP contents. The menu label is English-only. See README for the supported executable and installation instructions.
           EOF
           gh release create "$RELEASE_TAG" package/SendToStash-ASI-only.zip package/SendToStash-ASI-with-loader.zip package/SHA256SUMS.txt \
             --verify-tag --title "SendToStash $RELEASE_TAG" --prerelease --notes-file release-notes.md
