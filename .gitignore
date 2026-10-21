@@ -1,0 +1,14 @@
+# Local analysis inputs and dependencies, not distributable mod source.
+research/binary/*.exe
+research/binary/ghidra-project/
+tools/python-deps/
+tools/leanrea/
+tools/minhook/
+build/
+__pycache__/
+stalker2-modding-harness/
+research/
+inventory_research.json
+research_*.py
+tools/FocusedAudit.java
+tools/native_*.py

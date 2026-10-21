@@ -1,0 +1,52 @@
+name: Build ASI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Zig 0.15.2
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'zig.zip'
+          Invoke-WebRequest 'https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c') { throw 'Zig archive checksum mismatch' }
+          Expand-Archive $archive -DestinationPath $env:RUNNER_TEMP
+          (Join-Path $env:RUNNER_TEMP 'zig-x86_64-windows-0.15.2') >> $env:GITHUB_PATH
+      - name: Build the native ASI
+        run: ./tools/build_native.ps1
+      - name: Verify DLL and unsupported-host guard
+        run: |
+          python -m pip install pefile==2024.8.26
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+          python tools/verify_native_build.py --artifact-only
+          if ($LASTEXITCODE -ne 0) { throw 'DLL verification failed' }
+          & ./build/guard_probe.exe (Resolve-Path ./build/SendToStash.asi).Path
+          if ($LASTEXITCODE -ne 0) { throw 'Unsupported-host guard failed' }
+      - name: Package test build
+        run: |
+          New-Item -ItemType Directory -Force build/package | Out-Null
+          Copy-Item build/SendToStash.asi, README.md build/package/
+          Copy-Item third_party/minhook/LICENSE.txt build/package/MinHook-LICENSE.txt
+          Copy-Item build/static-verification.json build/package/
+          $hash = (Get-FileHash build/SendToStash.asi -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  SendToStash.asi" | Set-Content build/package/SHA256SUMS.txt -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SendToStash-windows-x64
+          path: build/package/
+          if-no-files-found: error
