@@ -1,0 +1,84 @@
+[b]Send to Your Stash — BETA — NO UE4SS[/b]
+
+Send inventory items directly to your personal stash from anywhere in the Zone. Right-click an eligible item and choose “Send to your stash”. Native Windows x64 ASI; no UE4SS required.
+
+[b]Description[/b]
+
+[url=https://github.com/tinbtb/stalker2-send-to-stash]GitHub repository and source code[/url]
+[url=https://github.com/tinbtb/stalker2-send-to-stash/releases/tag/v0.1.0-beta.1]Download v0.1.0-beta.1 on GitHub[/url]
+
+Found more loot than you can carry? Send it home without walking back to a base.
+
+This mod adds “Send to your stash” to the inventory right-click menu. It moves the selected item into your shared personal stash, ready to collect when you next visit a stash at a base. You can use it from anywhere.
+
+For stacked items, the game's quantity selector lets you choose how much to send. You can also cancel the transfer.
+
+The option appears for eligible items in your inventory. Equipped items must be unequipped first, and items the game does not allow you to drop are excluded.
+
+[b]Beta status[/b]
+
+Version: v0.1.0-beta.1.
+
+I have personally tested:
+[list]
+[*]Sending items to the personal stash.
+[*]Transferred items remaining in the stash after saving and reloading.
+[*]Partial-stack transfers and cancellation.
+[*]Weapons retaining their condition, attachments, and ammunition.
+[/list]
+Please report problems in Posts, including your game version, the item involved, and what happened. Attach SendToStash.log from the folder containing the ASI when possible.
+
+[b]Choose your download[/b]
+
+[list]
+[*][b]ASI-only[/b] — choose this if you already have a working ASI loader, including one installed for another ASI mod.
+[*][b]ASI with loader[/b] — includes Ultimate ASI Loader x64 as winhttp.dll. Choose this if you do not have an ASI loader installed.
+[/list]
+Both downloads contain the same SendToStash.asi.
+
+[b]Manual installation[/b]
+
+1. Close the game.
+2. Download one of the two packages above.
+3. Extract it into Stalker2/Binaries/Win64, beside Stalker2-Win64-Shipping.exe.
+4. Start the game, open your inventory, and right-click an eligible item.
+
+If winhttp.dll already exists, keep it and use the ASI-only package. Keep only one copy of SendToStash.asi installed.
+
+[b]Compatibility and limits[/b]
+
+This is a native Windows x64 ASI mod. UE4SS is not required. It does not replace game assets or configuration files.
+
+The release supports the tested game executable only. It checks the executable fingerprint and hook locations before enabling itself; unsupported builds are rejected. A game update may require a new mod build.
+
+The menu label is currently English-only, regardless of your game language. Weapon upgrade retention has not been separately confirmed.
+
+[b]Uninstallation[/b]
+
+Close the game and remove SendToStash.asi. Leave your ASI loader installed if other mods use it.
+
+[b]Code safety and automated builds[/b]
+
+The source code and build scripts are public so you can inspect how the mod works or build it yourself.
+
+[url=https://github.com/tinbtb/stalker2-send-to-stash/actions]View automated builds and their logs[/url]
+[url=https://github.com/tinbtb/stalker2-send-to-stash/blob/master/.github/workflows/build.yml]Inspect the GitHub Actions workflow[/url]
+
+Release ZIPs are built and published by GitHub Actions from the source at the release tag. The workflow uses a pinned Zig compiler version and checks its download checksum. Before publishing, it checks the ASI's DLL format, exports and imported libraries, tests rejection of an unsupported host, and verifies the ZIP contents. The optional loader comes from the official Ultimate ASI Loader release, with both its download archive and DLL checked against pinned SHA-256 hashes.
+
+Each release includes SHA256SUMS.txt. Compare the SHA-256 of your downloaded ZIP against that file to check that your copy matches the GitHub release. In PowerShell, use:
+[code]Get-FileHash .\SendToStash-ASI-only.zip -Algorithm SHA256[/code]
+For the bundled package, substitute SendToStash-ASI-with-loader.zip.
+
+These checks provide transparency and help detect changed downloads; they are not an independent security audit or a guarantee that the code has no bugs. An ASI runs native code inside the game process. Use the linked project releases or this Nexus page, keep a backup save, and keep your existing loader when installing the ASI-only package.
+
+[b]Credits[/b]
+
+[url=https://github.com/ThirteenAG/Ultimate-ASI-Loader]Ultimate ASI Loader by ThirteenAG[/url] — included in the optional loader package under its MIT license.
+[url=https://github.com/TsudaKageyu/minhook]MinHook[/url] — used for native hooks; license included.
+
+[b]AI-generated code[/b]
+
+The native code and build/packaging scripts were generated using OpenAI Codex under my direction. I have personally tested the mod in-game.
+
+Thank you for testing and sharing feedback!
