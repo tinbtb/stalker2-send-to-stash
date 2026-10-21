@@ -5,7 +5,7 @@ Send inventory items directly to your personal stash from anywhere in the Zone. 
 [b]Description[/b]
 
 [url=https://github.com/tinbtb/stalker2-send-to-stash]GitHub repository and source code[/url]
-[url=https://github.com/tinbtb/stalker2-send-to-stash/releases/tag/v0.1.0-beta.1]Download v0.1.0-beta.1 on GitHub[/url]
+[url=https://github.com/tinbtb/stalker2-send-to-stash/releases/tag/v0.1.0-beta.2]Download v0.1.0-beta.2 on GitHub[/url]
 
 Found more loot than you can carry? Send it home without walking back to a base.
 
@@ -17,7 +17,7 @@ The option appears for eligible items in your inventory. Equipped items must be 
 
 [b]Beta status[/b]
 
-Version: v0.1.0-beta.1.
+Version: v0.1.0-beta.2. Packaging update for Vortex; the ASI code is unchanged.
 
 I have personally tested:
 [list]
@@ -35,6 +35,10 @@ Please report problems in Posts, including your game version, the item involved,
 [*][b]ASI with loader[/b] — includes Ultimate ASI Loader x64 as winhttp.dll. Choose this if you do not have an ASI loader installed.
 [/list]
 Both downloads contain the same SendToStash.asi.
+
+Documentation and internal checksum files use SendToStash-specific names to avoid filename conflicts with other mods. If you also use PlayerObstructionHoldFire, choose the ASI-only package for one of the two mods: only one needs to supply winhttp.dll.
+
+When updating through Vortex, replace the previous SendToStash installation and redeploy to remove the old generic documentation files.
 
 [b]Manual installation[/b]
 

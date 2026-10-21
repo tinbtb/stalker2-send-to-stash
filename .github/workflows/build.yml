@@ -76,6 +76,8 @@ jobs:
           cat > release-notes.md <<'EOF'
           Native SendToStash ASI beta build. No UE4SS dependency.
 
+          Packaging update: documentation and internal checksum files now use SendToStash-specific names to avoid Vortex conflicts. The ASI code is unchanged. When using another ASI mod, choose the ASI-only package for one mod so only one package supplies winhttp.dll. Replace the old SendToStash installation in Vortex and redeploy.
+
           Choose SendToStash-ASI-only.zip if an ASI loader is already installed. Otherwise choose SendToStash-ASI-with-loader.zip, which includes Ultimate ASI Loader 9.7.4 as winhttp.dll. Both include installation guidance, checksums, and applicable licenses.
 
           Confirmed in-game by the author on October 21, 2026: save/reload persistence, partial-stack transfers, stack cancellation, and retention of weapon condition, attachments, and ammunition. Weapon upgrade retention has not been separately confirmed.
