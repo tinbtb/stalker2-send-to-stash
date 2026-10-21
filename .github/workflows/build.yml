@@ -39,18 +39,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DLL verification failed' }
           & ./build/guard_probe.exe (Resolve-Path ./build/SendToStash.asi).Path
           if ($LASTEXITCODE -ne 0) { throw 'Unsupported-host guard failed' }
-      - name: Package test build
+      - name: Package ASI-only and ASI-with-loader ZIPs
         run: |
-          New-Item -ItemType Directory -Force build/package | Out-Null
-          Copy-Item build/SendToStash.asi, README.md build/package/
-          Copy-Item third_party/minhook/LICENSE.txt build/package/MinHook-LICENSE.txt
-          Copy-Item build/static-verification.json build/package/
-          $hash = (Get-FileHash build/SendToStash.asi -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  SendToStash.asi" | Set-Content build/package/SHA256SUMS.txt -Encoding ascii
+          python tools/package.py
+          if ($LASTEXITCODE -ne 0) { throw 'Package verification failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: SendToStash-windows-x64
-          path: build/package/
+          path: build/packages/
           if-no-files-found: error
 
   release:
@@ -76,14 +72,13 @@ jobs:
           set -euo pipefail
           cd package
           sha256sum --check SHA256SUMS.txt
-          zip ../SendToStash-windows-x64.zip ./*
           cd ..
           cat > release-notes.md <<'EOF'
           Native SendToStash ASI test build. No UE4SS dependency.
 
-          Download the ZIP for the ASI, installation guidance, checksum, MinHook license, and DLL audit. The standalone ASI is also attached.
+          Choose SendToStash-ASI-only.zip if an ASI loader is already installed. Otherwise choose SendToStash-ASI-with-loader.zip, which includes Ultimate ASI Loader 9.7.4 as winhttp.dll. Both include installation guidance, checksums, and applicable licenses.
 
-          CI validated the DLL and unsupported-host guard. Gameplay and save persistence remain unverified. The menu label is English-only. See README for the supported executable and test instructions.
+          CI validated the DLL, unsupported-host guard, loader checksums, and ZIP contents. The author reports successful in-game operation. Detailed save-persistence and item-state coverage is not recorded. The menu label is English-only. See README for the supported executable and test instructions.
           EOF
-          gh release create "$RELEASE_TAG" SendToStash-windows-x64.zip package/SendToStash.asi package/SHA256SUMS.txt \
+          gh release create "$RELEASE_TAG" package/SendToStash-ASI-only.zip package/SendToStash-ASI-with-loader.zip package/SHA256SUMS.txt \
             --verify-tag --title "SendToStash $RELEASE_TAG" --prerelease --notes-file release-notes.md

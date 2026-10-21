@@ -2,9 +2,16 @@
 
 Native ASI test build for S.T.A.L.K.E.R. 2. Adds **Send to your stash** to the existing inventory right-click menu, from anywhere. No UE4SS dependency and no replacement game assets.
 
-The implementation uses the personal-stash container identified from the premium-edition Journalist flash-drive reward, then calls the game's existing item-transfer/stack-selection path. It only offers the action for carried items whose native Drop permission allows it and whose Unequip action is not visible. Save/reload persistence and preservation of item state still require in-game verification.
+The implementation uses the personal-stash container identified from the premium-edition Journalist flash-drive reward, then calls the game's existing item-transfer/stack-selection path. It only offers the action for carried items whose native Drop permission allows it and whose Unequip action is not visible. The author reported successful in-game operation on October 21, 2026. Detailed coverage of save/reload persistence and item-state preservation has not been recorded.
 
 ## Current test
+
+Download one package and extract it beside `Stalker2-Win64-Shipping.exe` in `Stalker2/Binaries/Win64`:
+
+- `SendToStash-ASI-only.zip`: use when an ASI loader is already installed.
+- `SendToStash-ASI-with-loader.zip`: includes Ultimate ASI Loader 9.7.4 as `winhttp.dll`. If that DLL already exists, keep your existing loader and use the ASI-only package instead.
+
+Both packages contain the same ASI plus instructions, checksums, and applicable third-party licenses. No UE4SS installation is required.
 
 Supported executable SHA-256: `61bc1e030740cebc30cf1dad0c86cf65e39e12ff0500225821d684181e08d56b`. Different executables or mismatching native entry bytes disable the plugin before hooks are installed.
 
@@ -16,9 +23,9 @@ Test on a manual save: right-click one ordinary carried item, send it, and confi
 
 ## Build and evidence
 
-GitHub Actions builds `SendToStash.asi` on Windows using the same script, Zig 0.15.2, vendored MinHook, and checked-in game profile. Each push, pull request, or manual run produces a `SendToStash-windows-x64` artifact with the ASI, SHA-256 checksum, DLL audit, README, and MinHook license. Download it from the run's Artifacts section.
+GitHub Actions builds `SendToStash.asi` on Windows using the same script, Zig 0.15.2, vendored MinHook, and checked-in game profile. Each push, pull request, or manual run produces a `SendToStash-windows-x64` artifact containing both ZIP variants and their SHA-256 checksums. Download it from the run's Artifacts section. `tools/package.py` downloads the official loader, verifies its pinned archive and DLL checksums, and verifies both ZIPs.
 
-Pushing a version tag such as `v0.1.0-alpha.1` also publishes a GitHub prerelease after all build checks pass. Release assets include the packaged ZIP, standalone ASI, and checksum. To publish manually, run this workflow with an existing `v*` tag selected. Existing releases are not overwritten. Branch builds only upload Actions artifacts. Releases remain marked as prereleases while gameplay validation is pending.
+Pushing a version tag such as `v0.1.0-alpha.2` also publishes a GitHub prerelease after all build checks pass. Release assets include both ZIP variants and their checksum file. To publish manually, run this workflow with an existing `v*` tag selected. Existing releases are not overwritten. Branch builds only upload Actions artifacts. Prerelease status is retained until the remaining validation coverage is confirmed.
 
 CI checks the DLL exports/imports and runs the unsupported-host guard. It does not require or distribute the game executable, and does not test gameplay. Debug information includes build paths, so the CI ASI is not guaranteed byte-identical to a local build. The menu label is currently English-only, without a localization SID.
 
@@ -26,4 +33,4 @@ Run `tools/build_native.ps1 -Zig <zig.exe>` with Zig 0.15.2. The MinHook C sourc
 
 `src/build_profile.h` is generated from the local executable copy by `tools/make_native_profile.py`; the normal build uses the checked-in profile and does not require that executable. `tools/verify_native_build.py` audits the built DLL and the analysis profile. `build/guard_probe.exe <absolute path to ASI>` validates rejection in an unsupported host process.
 
-Static investigation is retained in the local workspace; game extracts and binary-analysis inputs are excluded from this repository. This implementation and analysis tooling were generated with AI assistance and have not yet been validated in-game.
+Static investigation is retained in the local workspace; game extracts and binary-analysis inputs are excluded from this repository. This implementation and analysis tooling were generated with AI assistance. In-game operation has been confirmed by the author; automated CI checks do not run the game.
