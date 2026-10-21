@@ -16,7 +16,9 @@ Test on a manual save: right-click one ordinary carried item, send it, and confi
 
 ## Build and evidence
 
-GitHub Actions builds `SendToStash.asi` on Windows using the same script, Zig 0.15.2, vendored MinHook, and checked-in game profile. Each push, pull request, or manual run produces a `SendToStash-windows-x64` artifact with the ASI, SHA-256 checksum, DLL audit, README, and MinHook license. Download it from the run's Artifacts section. This creates test artifacts, not tagged releases.
+GitHub Actions builds `SendToStash.asi` on Windows using the same script, Zig 0.15.2, vendored MinHook, and checked-in game profile. Each push, pull request, or manual run produces a `SendToStash-windows-x64` artifact with the ASI, SHA-256 checksum, DLL audit, README, and MinHook license. Download it from the run's Artifacts section.
+
+Pushing a version tag such as `v0.1.0-alpha.1` also publishes a GitHub prerelease after all build checks pass. Release assets include the packaged ZIP, standalone ASI, and checksum. To publish manually, run this workflow with an existing `v*` tag selected. Existing releases are not overwritten. Branch builds only upload Actions artifacts. Releases remain marked as prereleases while gameplay validation is pending.
 
 CI checks the DLL exports/imports and runs the unsupported-host guard. It does not require or distribute the game executable, and does not test gameplay. Debug information includes build paths, so the CI ASI is not guaranteed byte-identical to a local build. The menu label is currently English-only, without a localization SID.
 
@@ -24,4 +26,4 @@ Run `tools/build_native.ps1 -Zig <zig.exe>` with Zig 0.15.2. The MinHook C sourc
 
 `src/build_profile.h` is generated from the local executable copy by `tools/make_native_profile.py`; the normal build uses the checked-in profile and does not require that executable. `tools/verify_native_build.py` audits the built DLL and the analysis profile. `build/guard_probe.exe <absolute path to ASI>` validates rejection in an unsupported host process.
 
-Static investigation is retained in the local workspace; game extracts and binary-analysis inputs are excluded from this repository. This implementation and analysis tooling were generated with AI assistance and have not yet been validated in-game. No release version or tag has been created.
+Static investigation is retained in the local workspace; game extracts and binary-analysis inputs are excluded from this repository. This implementation and analysis tooling were generated with AI assistance and have not yet been validated in-game.

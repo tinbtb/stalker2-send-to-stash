@@ -1,7 +1,9 @@
-name: Build ASI
+name: Build and release ASI
 
 on:
   push:
+    branches: ['**']
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -50,3 +52,38 @@ jobs:
           name: SendToStash-windows-x64
           path: build/package/
           if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SendToStash-windows-x64
+          path: package
+      - name: Publish tested build as a prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          cd package
+          sha256sum --check SHA256SUMS.txt
+          zip ../SendToStash-windows-x64.zip ./*
+          cd ..
+          cat > release-notes.md <<'EOF'
+          Native SendToStash ASI test build. No UE4SS dependency.
+
+          Download the ZIP for the ASI, installation guidance, checksum, MinHook license, and DLL audit. The standalone ASI is also attached.
+
+          CI validated the DLL and unsupported-host guard. Gameplay and save persistence remain unverified. The menu label is English-only. See README for the supported executable and test instructions.
+          EOF
+          gh release create "$RELEASE_TAG" SendToStash-windows-x64.zip package/SendToStash.asi package/SHA256SUMS.txt \
+            --verify-tag --title "SendToStash $RELEASE_TAG" --prerelease --notes-file release-notes.md
