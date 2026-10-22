@@ -59,7 +59,11 @@ static BOOL stash_container(uintptr_t manager,uint32_t *uid) {
     if(!read_u32(manager+0x80,uid) || !valid_uid(*uid) || (*uid&0xf8000000u)!=0x38000000u)return FALSE;
     uintptr_t store=(uintptr_t)((GetStoreFn)(g_base+RVA_GET_STORE))();
     if(!store)return FALSE;
+    #ifdef SEND_TO_STASH_UE4SS
     uintptr_t block=store+0x4db070;
+#else
+    uintptr_t block=store+sts_container_pool_offset;
+#endif
     uint32_t index=*uid&0x07ffffffu;
 #ifdef SEND_TO_STASH_UE4SS
     /* Bound traversal even for corrupt/mismatched container IDs. */

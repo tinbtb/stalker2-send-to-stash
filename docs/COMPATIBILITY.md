@@ -1,5 +1,7 @@
 # Startup-only compatibility development
 
+**Current release:** see [two-family compatibility](COMPATIBILITY_FAMILIES.md). The historical single-family resolver described below remains in published beta.3; beta.4 resolves both fixtures offline and the author confirmed the new ASI works in-game on Steam v2.0.6. Development-fixture gameplay remains untested.
+
 Beta v0.1.0-beta.3 uses the **unified ASI**, which always runs startup address resolution and uses one callback implementation. No UE4SS runtime dependency is added to the ASI. The author confirmed the unified ASI works in-game on Steam v2.0.6 on October 22, 2026.
 
 ## In-game regression confirmation

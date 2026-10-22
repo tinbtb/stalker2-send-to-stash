@@ -31,6 +31,7 @@ def main():
     common = {
         'SendToStash.asi': asi,
         'SendToStash/README.md': (ROOT / 'README.md').read_bytes(),
+        'SendToStash/docs/COMPATIBILITY_FAMILIES.md': (ROOT / 'docs/COMPATIBILITY_FAMILIES.md').read_bytes(),
         'SendToStash/MinHook-LICENSE.txt': (ROOT / 'third_party/minhook/LICENSE.txt').read_bytes(),
     }
     archives = []

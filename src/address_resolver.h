@@ -19,3 +19,6 @@ typedef struct {
     uint32_t mask_count;
 } StsProfile;
 typedef struct { uint32_t from, displacement, next, to; } StsReference;
+
+/* Selected only after complete startup validation; zero on refusal. */
+extern uint32_t sts_container_pool_offset;

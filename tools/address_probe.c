@@ -7,13 +7,17 @@
 #include <string.h>
 #include "address_resolver.h"
 #include "address_profile.h"
+#include "address_profile_development.h"
 #include "pe_data_image.h"
 static void logger(const char *fmt,...) {
     va_list ap;va_start(ap,fmt);vprintf(fmt,ap);va_end(ap);puts("");
 }
 static BOOL resolve(unsigned char *image) {
     uint32_t rvas[STS_PROFILE_COUNT];uintptr_t manager;
-    return sts_resolve((HMODULE)image,rvas,&manager,logger);
+    BOOL ok=sts_resolve((HMODULE)image,rvas,&manager,logger);
+    if(!ok && (manager || sts_container_pool_offset))ExitProcess(40);
+    if(!ok)for(unsigned i=0;i<STS_PROFILE_COUNT;i++)if(rvas[i])ExitProcess(41);
+    return ok;
 }
 int wmain(int argc,wchar_t **argv) {
     if(argc!=3)return 2;
@@ -30,11 +34,29 @@ int wmain(int argc,wchar_t **argv) {
         }
         VirtualFree(image,0,MEM_RELEASE);return ok?0:10;
     }
-    if(wcscmp(argv[1],L"--image")){VirtualFree(image,0,MEM_RELEASE);return 2;}
+    if(wcscmp(argv[1],L"--image") && wcscmp(argv[1],L"--outlined")){VirtualFree(image,0,MEM_RELEASE);return 2;}
+    BOOL outlined=!wcscmp(argv[1],L"--outlined") || !wcscmp(argv[1],L"--outlined-leaf");
+    const StsProfile *profiles=outlined?dev_sts_profiles:sts_profiles;
+    const StsReference *edges=outlined?dev_sts_edges:sts_edges;
+    const StsReference *global_refs=outlined?dev_sts_manager_refs:sts_manager_refs;
+    unsigned edge_count=outlined?sizeof(dev_sts_edges)/sizeof(*dev_sts_edges):sizeof(sts_edges)/sizeof(*sts_edges);
+    unsigned global_count=outlined?sizeof(dev_sts_manager_refs)/sizeof(*dev_sts_manager_refs):sizeof(sts_manager_refs)/sizeof(*sts_manager_refs);
     uint32_t rvas[STS_PROFILE_COUNT];uintptr_t manager;
     ULONGLONG began=GetTickCount64();
     if(!sts_resolve((HMODULE)image,rvas,&manager,logger))return 10;
     printf("Original data image resolved in %llu ms\n",GetTickCount64()-began);
+    if(outlined) {
+        uint32_t from=STS_STASH_LAYOUT_WITNESS;
+        unsigned displacement=665,next=669;
+        int32_t delta;memcpy(&delta,image+rvas[from]+displacement,4);
+        uint32_t helper=rvas[from]+next+delta;
+        image[helper+5]^=1;if(resolve(image))return 30;image[helper+5]^=1;
+        image[rvas[from]+displacement]^=1;if(resolve(image))return 31;image[rvas[from]+displacement]^=1;
+        /* An item-pool constant from the other family cannot be mixed in. */
+        image[rvas[STS_TRANSFER_ITEM]+44]^=0x20;
+        if(resolve(image))return 32;
+        image[rvas[STS_TRANSFER_ITEM]+44]^=0x20;
+    }
     /* Simulate a different executable identity without altering game logic. */
     IMAGE_DOS_HEADER *mapped_dos=(void *)image;
     IMAGE_NT_HEADERS64 *mapped_nt=(void *)(image+mapped_dos->e_lfanew);
@@ -61,7 +83,7 @@ int wmain(int argc,wchar_t **argv) {
     if((uintptr_t)(extra+1)-(uintptr_t)image>mapped_nt->OptionalHeader.SizeOfHeaders)return 15;
     uint32_t relocated=mapped_nt->OptionalHeader.SizeOfImage;
     uint32_t original=rvas[STS_TRANSFER_ITEM];
-    const StsProfile *profile=&sts_profiles[STS_TRANSFER_ITEM];
+    const StsProfile *profile=&profiles[STS_TRANSFER_ITEM];
     memcpy(image+relocated,image+original,profile->size);
     int32_t movement=(int32_t)(relocated-original);
     for(unsigned i=0;i<profile->mask_count;i++) {
@@ -69,8 +91,8 @@ int wmain(int argc,wchar_t **argv) {
         int32_t value;memcpy(&value,image+relocated+profile->masks[i].offset,4);
         value-=movement;memcpy(image+relocated+profile->masks[i].offset,&value,4);
     }
-    for(unsigned i=0;i<sizeof(sts_edges)/sizeof(*sts_edges);i++)if(sts_edges[i].to==STS_TRANSFER_ITEM) {
-        const StsReference *ref=&sts_edges[i];int32_t value;
+    for(unsigned i=0;i<edge_count;i++)if(edges[i].to==STS_TRANSFER_ITEM) {
+        const StsReference *ref=&edges[i];int32_t value;
         memcpy(&value,image+rvas[ref->from]+ref->displacement,4);value+=movement;
         memcpy(image+rvas[ref->from]+ref->displacement,&value,4);
     }
@@ -83,21 +105,21 @@ int wmain(int argc,wchar_t **argv) {
     mapped_nt->FileHeader.NumberOfSections++;mapped_nt->OptionalHeader.SizeOfImage+=0x10000;
     if(!sts_resolve((HMODULE)image,rvas,&manager,logger) || rvas[STS_TRANSFER_ITEM]!=relocated)return 17;
     /* A masked relative displacement still has to satisfy the call graph. */
-    for(unsigned i=0;i<sizeof(sts_edges)/sizeof(*sts_edges);i++)if(sts_edges[i].to==STS_TRANSFER_ITEM) {
-        const StsReference *ref=&sts_edges[i];
+    for(unsigned i=0;i<edge_count;i++)if(edges[i].to==STS_TRANSFER_ITEM) {
+        const StsReference *ref=&edges[i];
         image[rvas[ref->from]+ref->displacement]^=1;
         if(resolve(image))return 18;
         image[rvas[ref->from]+ref->displacement]^=1;
         break;
     }
-    for(unsigned i=0;i<sizeof(sts_manager_refs)/sizeof(*sts_manager_refs);i++) {
-        const StsReference *ref=&sts_manager_refs[i];int32_t value;
+    for(unsigned i=0;i<global_count;i++) {
+        const StsReference *ref=&global_refs[i];int32_t value;
         memcpy(&value,image+rvas[ref->from]+ref->displacement,4);value+=16;
         memcpy(image+rvas[ref->from]+ref->displacement,&value,4);
     }
     uintptr_t old_manager=manager;
     if(!sts_resolve((HMODULE)image,rvas,&manager,logger) || manager!=old_manager+16)return 19;
-    const StsReference *ref=&sts_manager_refs[0];
+    const StsReference *ref=&global_refs[0];
     image[rvas[ref->from]+ref->displacement]^=8;
     if(resolve(image))return 20;
     VirtualFree(image,0,MEM_RELEASE);

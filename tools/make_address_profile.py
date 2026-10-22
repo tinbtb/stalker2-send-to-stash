@@ -31,11 +31,19 @@ MANAGER = 0xa2da4b0
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('executable', type=Path)
+    parser.add_argument('--family', choices=['steam','development'], default='steam')
     args = parser.parse_args()
+    global FUNCTIONS, MANAGER
+    development = args.family == "development"
+    if development:
+        FUNCTIONS = dict(zip(FUNCTIONS, [0x10cc72e,0x3455a60,0x2713f5a,0xc68a08,0x380efc8,0x582de38,0x271d774,0x30f4c1c,0x549d0b4,0x31963f8,0x338c18e,0x338d446,0x35da0c6,0xd2ddca]))
+        MANAGER = 0xa2cb358
+
     raw = args.executable.read_bytes()
     # Fingerprints must be reviewed again before accepting a new compiler layout.
-    assert hashlib.sha256(raw).hexdigest() == '61bc1e030740cebc30cf1dad0c86cf65e39e12ff0500225821d684181e08d56b'
-    pe = pefile.PE(data=raw)
+    assert hashlib.sha256(raw).hexdigest() == ('2ecc5d19fe37f97e3f7f2467d652b299b5a47f010fa49fd803a49a4a6930a409' if development else '61bc1e030740cebc30cf1dad0c86cf65e39e12ff0500225821d684181e08d56b')
+    pe = pefile.PE(data=raw,fast_load=True)
+    pe.parse_data_directories(directories=[3])
     base = pe.OPTIONAL_HEADER.ImageBase
     ends = {e.struct.BeginAddress: e.struct.EndAddress for e in pe.DIRECTORY_ENTRY_EXCEPTION}
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
@@ -79,11 +87,38 @@ def main():
         lines += [f'static const StsMask masks_{idx}[] = ' + '{' + ','.join(f'{{{o},{s}}}' for o,s in masks) + '};']
         profiles.append('{' + f'"{name}",{len(data)},' + byte_array(anchor) + ',' + byte_array(anchor_mask)
                         + ',' + byte_array(hashlib.sha256(normalized).digest()) + f',masks_{idx},{len(masks)}' + '}')
+    # The second compiler layout outlines code that the first layout inlines.
+    # Fingerprint the entire helper; its address alone is never trusted.
+    if development:
+        helper_start = 0x32b3756
+        helper_end = ends[helper_start]
+        data = bytearray(pe.get_data(helper_start,helper_end-helper_start))
+        masks=[]
+        for ins in md.disasm(bytes(data),base+helper_start):
+            off=ins.address-base-helper_start
+            for operand in ins.operands:
+                if operand.type==X86_OP_MEM and operand.mem.base==X86_REG_RIP:
+                    masks.append((off+ins.disp_offset,4))
+                elif operand.type==X86_OP_IMM and (ins.group(capstone.CS_GRP_CALL) or ins.group(capstone.CS_GRP_JUMP)) and not helper_start<=operand.imm-base<helper_end:
+                    masks.append((off+ins.imm_offset,ins.imm_size))
+        normalized=bytearray(data)
+        anchor_mask=bytearray([255]*32)
+        for off,size in masks:
+            normalized[off:off+size]=bytes(size)
+            for pos in range(off,min(off+size,32)):anchor_mask[pos]=0
+        anchor=bytes(a&m for a,m in zip(data[:32],anchor_mask))
+        lines += ['static const StsMask helper_masks[] = {'+','.join('{'+str(o)+','+str(n)+'}' for o,n in masks)+'};']
+        lines += ['static const StsProfile helper_profile = {'+'"OUTLINED_LAYOUT_HELPER",'+str(len(data))+','+byte_array(anchor)+','+byte_array(anchor_mask)+','+byte_array(hashlib.sha256(normalized).digest())+',helper_masks,'+str(len(masks))+''+ '};']
     assert globals_ and edges
     lines += ['static const StsProfile sts_profiles[STS_PROFILE_COUNT] = {', ',\n'.join(profiles), '};',
               'static const StsReference sts_edges[] = {' + ','.join('{' + ','.join(map(str,e)) + '}' for e in edges) + '};',
               'static const StsReference sts_manager_refs[] = {' + ','.join('{' + ','.join(map(str,e)) + ',0}' for e in globals_) + '};']
-    (ROOT / 'src/address_profile.h').write_text('\n'.join(lines)+'\n', encoding='utf-8')
+    output='\n'.join(lines)+'\n'
+    if development:
+        for symbol in ['masks_', 'helper_masks', 'helper_profile', 'sts_profiles', 'sts_edges', 'sts_manager_refs']:
+            output=output.replace(symbol,'dev_'+symbol)
+        output=output.replace('dev_dev_','dev_')
+    (ROOT / ('src/address_profile_development.h' if development else 'src/address_profile.h')).write_bytes(output.encode('utf-8'))
     print(f'Generated {len(profiles)} full-function fingerprints, {len(edges)} call edges, {len(globals_)} manager references')
 
 

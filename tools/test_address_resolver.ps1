@@ -22,16 +22,16 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Offline resolver probe compilation failed' }
     $baselineOutput = & ./build/address_probe.exe --image $Baseline
     if ($LASTEXITCODE -ne 0) { throw "Baseline/relocation/mutation tests failed: $baselineOutput" }
-    $fixtureOutput = & ./build/address_probe.exe --inspect $DevelopmentFixture
-    if ($LASTEXITCODE -ne 10) { throw "Development fixture must be rejected because its layout changed: $fixtureOutput" }
+    $fixtureOutput = & ./build/address_probe.exe --outlined $DevelopmentFixture
+    if ($LASTEXITCODE -ne 0) { throw "Outlined-layout regression failed: $fixtureOutput" }
     @{
         baseline_relocation_mutation_tests = 'passed'
-        development_fixture = @{ sha256 = '2ecc5d19fe37f97e3f7f2467d652b299b5a47f010fa49fd803a49a4a6930a409'; development_only = $true; executed = $false; result = 'rejected: changed layout/instructions' }
+        development_fixture = @{ sha256 = '2ecc5d19fe37f97e3f7f2467d652b299b5a47f010fa49fd803a49a4a6930a409'; development_only = $true; executed = $false; result = 'resolved: outlined family; relocation and mutation checks passed; gameplay untested' }
         baseline_output = $baselineOutput
         fixture_output = $fixtureOutput
         gameplay_test = 'not run; offline data-only validation'
     } | ConvertTo-Json -Depth 5 | Set-Content build/address-resolver-tests.json -Encoding utf8
-    Write-Output 'Startup resolver tests passed: identity, relocation, mutation, ambiguity, call graph, manager agreement; development fixture correctly rejected. No game code executed.'
+    Write-Output 'Startup resolver tests passed: identity, relocation, mutation, ambiguity, call graph, manager agreement; both coherent families validated offline. No game code executed.'
 } finally { Pop-Location }
 # The fixture's expected rejection uses probe exit 10; the test suite succeeded.
 exit 0
