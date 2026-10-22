@@ -30,17 +30,17 @@ def main():
     out.mkdir(exist_ok=True)
     common = {
         'SendToStash.asi': asi,
-        'SendToStash-README.md': (ROOT / 'README.md').read_bytes(),
-        'SendToStash-MinHook-LICENSE.txt': (ROOT / 'third_party/minhook/LICENSE.txt').read_bytes(),
+        'SendToStash/README.md': (ROOT / 'README.md').read_bytes(),
+        'SendToStash/MinHook-LICENSE.txt': (ROOT / 'third_party/minhook/LICENSE.txt').read_bytes(),
     }
     archives = []
     for variant, bundle in [('ASI-only', False), ('ASI-with-loader', True)]:
         files = dict(common)
         if bundle:
             files['winhttp.dll'] = loader
-            files['SendToStash-Ultimate-ASI-Loader-LICENSE.txt'] = (ROOT / 'third_party/ultimate-asi-loader/LICENSE.txt').read_bytes()
-            files['SendToStash-Ultimate-ASI-Loader-UPSTREAM.md'] = (ROOT / 'third_party/ultimate-asi-loader/UPSTREAM.md').read_bytes()
-        files['SendToStash-SHA256SUMS.txt'] = ''.join(sha(data) + '  ' + name + '\n' for name, data in sorted(files.items())).encode('ascii')
+            files['SendToStash/Ultimate-ASI-Loader-LICENSE.txt'] = (ROOT / 'third_party/ultimate-asi-loader/LICENSE.txt').read_bytes()
+            files['SendToStash/Ultimate-ASI-Loader-UPSTREAM.md'] = (ROOT / 'third_party/ultimate-asi-loader/UPSTREAM.md').read_bytes()
+        files['SendToStash/SHA256SUMS.txt'] = ''.join(sha(data) + '  ' + name + '\n' for name, data in sorted(files.items())).encode('ascii')
         path = out / ('SendToStash-' + variant + '.zip')
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
             for name, data in sorted(files.items()):
@@ -53,8 +53,8 @@ def main():
             actual_runtime = {name for name in z.namelist() if name.endswith(('.asi', '.dll'))}
             if z.testzip() or set(z.namelist()) != set(files) or actual_runtime != expected_runtime:
                 raise ValueError('ZIP content verification failed')
-            if any(not name.startswith('SendToStash') for name in z.namelist() if name != 'winhttp.dll'):
-                raise ValueError('Package files must use mod-specific names to avoid Vortex conflicts')
+            if {name for name in z.namelist() if '/' not in name} != expected_runtime or any(not name.startswith('SendToStash/') for name in z.namelist() if name not in expected_runtime):
+                raise ValueError('Only the ASI and optional loader may be at the ZIP root; supporting files must be under SendToStash/')
             for name, data in files.items():
                 if z.read(name) != data:
                     raise ValueError('ZIP payload mismatch: ' + name)

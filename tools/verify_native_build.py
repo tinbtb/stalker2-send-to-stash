@@ -2,7 +2,7 @@ import hashlib,json,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'tools/python-deps'))
 import pefile
-RUNTIME_STATUS='Author confirmed in-game on 2026-10-21: save/reload, partial stacks, cancellation, weapon condition, attachments, ammo; CI does not run the game; upgrades not separately confirmed'
+RUNTIME_STATUS='Author confirmed on Steam v2.0.6 on 2026-10-22: unified ASI works in-game; earlier regression checks: partial transfers, cancellation, weapon ammo, attachments, upgrades; save/reload and condition confirmed 2026-10-21; relocated-build gameplay untested; CI does not run the game'
 asi=ROOT/'build/SendToStash.asi';pe=pefile.PE(str(asi))
 imports={d.dll.decode():[i.name.decode() if i.name else str(i.ordinal) for i in d.imports] for d in pe.DIRECTORY_ENTRY_IMPORT}
 exports=[s.name.decode() for s in pe.DIRECTORY_ENTRY_EXPORT.symbols if s.name]

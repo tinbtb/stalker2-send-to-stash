@@ -76,11 +76,11 @@ jobs:
           cat > release-notes.md <<'EOF'
           Native SendToStash ASI beta build. No UE4SS dependency.
 
-          Packaging update: documentation and internal checksum files now use SendToStash-specific names to avoid Vortex conflicts. The ASI code is unchanged. When using another ASI mod, choose the ASI-only package for one mod so only one package supplies winhttp.dll. Replace the old SendToStash installation in Vortex and redeploy.
+          Unified startup resolution validates relevant native code and relationships once before enabling hooks; there is no whole-executable hash shortcut or runtime scanning. Address-only changes may be tolerated, but future game versions still require testing. Documentation, licenses, and internal checksums now live under SendToStash/; only the ASI and optional loader are at the ZIP root. When using another ASI mod, choose the ASI-only package for one mod so only one package supplies winhttp.dll. Replace the old SendToStash installation in Vortex and redeploy.
 
           Choose SendToStash-ASI-only.zip if an ASI loader is already installed. Otherwise choose SendToStash-ASI-with-loader.zip, which includes Ultimate ASI Loader 9.7.4 as winhttp.dll. Both include installation guidance, checksums, and applicable licenses.
 
-          Confirmed in-game by the author on October 21, 2026: save/reload persistence, partial-stack transfers, stack cancellation, and retention of weapon condition, attachments, and ammunition. Weapon upgrade retention has not been separately confirmed.
+          The author confirmed the unified ASI works in-game on Steam v2.0.6 on October 22, 2026. Earlier regression tests confirmed partial transfers, cancellation, and retention of weapon ammunition, attachments, and upgrades. Earlier testing confirmed save/reload persistence and weapon condition retention. Relocated-build gameplay remains untested.
 
           CI validated the DLL, unsupported-host guard, loader checksums, and ZIP contents. The menu label is English-only. See README for the supported executable and installation instructions.
           EOF

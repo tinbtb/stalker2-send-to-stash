@@ -5,7 +5,7 @@ Send inventory items directly to your personal stash from anywhere in the Zone. 
 [b]Description[/b]
 
 [url=https://github.com/tinbtb/stalker2-send-to-stash]GitHub repository and source code[/url]
-[url=https://github.com/tinbtb/stalker2-send-to-stash/releases/tag/v0.1.0-beta.2]Download v0.1.0-beta.2 on GitHub[/url]
+[url=https://github.com/tinbtb/stalker2-send-to-stash/releases/tag/v0.1.0-beta.3]Download v0.1.0-beta.3 on GitHub[/url]
 
 Found more loot than you can carry? Send it home without walking back to a base.
 
@@ -17,15 +17,16 @@ The option appears for eligible items in your inventory. Equipped items must be 
 
 [b]Beta status[/b]
 
-Version: v0.1.0-beta.2. Packaging update for Vortex; the ASI code is unchanged.
+Version: v0.1.0-beta.3. Unified startup address validation, with supporting files grouped into a SendToStash subfolder.
 
 I have personally tested:
 [list]
 [*]Sending items to the personal stash.
 [*]Transferred items remaining in the stash after saving and reloading.
 [*]Partial-stack transfers and cancellation.
-[*]Weapons retaining their condition, attachments, and ammunition.
+[*]Weapons retaining their condition, attachments, ammunition, and upgrades.
 [/list]
+The unified ASI was confirmed working in-game on Steam v2.0.6 on October 22, 2026. Gameplay on other executable versions remains untested.
 Please report problems in Posts, including your game version, the item involved, and what happened. Attach SendToStash.log from the folder containing the ASI when possible.
 
 [b]Choose your download[/b]
@@ -36,7 +37,7 @@ Please report problems in Posts, including your game version, the item involved,
 [/list]
 Both downloads contain the same SendToStash.asi.
 
-Documentation and internal checksum files use SendToStash-specific names to avoid filename conflicts with other mods. If you also use PlayerObstructionHoldFire, choose the ASI-only package for one of the two mods: only one needs to supply winhttp.dll.
+Only SendToStash.asi and the optional winhttp.dll are at the ZIP root. Documentation, licenses, and internal checksums are grouped in the SendToStash subfolder. If you also use PlayerObstructionHoldFire, choose the ASI-only package for one of the two mods: only one needs to supply winhttp.dll.
 
 When updating through Vortex, replace the previous SendToStash installation and redeploy to remove the old generic documentation files.
 
@@ -53,9 +54,9 @@ If winhttp.dll already exists, keep it and use the ASI-only package. Keep only o
 
 This is a native Windows x64 ASI mod. UE4SS is not required. It does not replace game assets or configuration files.
 
-The release supports the tested game executable only. It checks the executable fingerprint and hook locations before enabling itself; unsupported builds are rejected. A game update may require a new mod build.
+Tested on Steam v2.0.6. The ASI validates relevant native function fingerprints and their relationships once at startup, then uses the resolved addresses without runtime scanning or polling. Missing or ambiguous matches disable the mod before hooks are installed. This can tolerate address-only changes, but future game updates still need testing and may require a new mod build.
 
-The menu label is currently English-only, regardless of your game language. Weapon upgrade retention has not been separately confirmed.
+The menu label is currently English-only, regardless of your game language.
 
 [b]Uninstallation[/b]
 

@@ -17,7 +17,7 @@ $env:ZIG_GLOBAL_CACHE_DIR = Join-Path $out 'zig-cache'
 $env:ZIG_LOCAL_CACHE_DIR = Join-Path $out 'zig-local-cache'
 Push-Location $root
 try {
-    $sources = @('src/send_to_stash.c','third_party/minhook/src/buffer.c','third_party/minhook/src/hook.c','third_party/minhook/src/trampoline.c','third_party/minhook/src/hde/hde64.c')
+    $sources = @('src/send_to_stash.c','src/address_resolver.c','third_party/minhook/src/buffer.c','third_party/minhook/src/hook.c','third_party/minhook/src/trampoline.c','third_party/minhook/src/hde/hde64.c')
     & $Zig cc -target x86_64-windows-gnu -std=c11 -shared -O2 -g -Wall -Wextra -Wno-cast-function-type $sources -Isrc -Ithird_party/minhook/include -lbcrypt -lkernel32 -luser32 -o build/SendToStash.asi
     if ($LASTEXITCODE -ne 0) { throw 'ASI compilation failed.' }
     & $Zig cc -target x86_64-windows-gnu -std=c11 -O2 tools/guard_probe.c -municode -o build/guard_probe.exe
