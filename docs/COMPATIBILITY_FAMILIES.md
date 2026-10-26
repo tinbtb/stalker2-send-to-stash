@@ -1,64 +1,19 @@
-# Startup compatibility families 
+# Startup compatibility families
 
-Both native ASIs now recognize two audited compiler/layout families. There is no
-storefront check or executable-hash allowlist at runtime. Each family must match
-in full: normalized functions, native relationships, globals, and outlined helper
-code. Matching individual functions from different families is not sufficient.
+The release recognizes three audited compiler/layout families using one shared gameplay implementation. Resolution runs once on the startup worker; callbacks use cached results without runtime scanning or version branches.
 
-The installed Steam v2.0.6 executable (SHA256 beginning `61bc1e03`) selects the
-inline family. The development-only fixture (SHA256 beginning `2ecc5d19`)
-selects the outlined family. The fixture is read as data only, never launched,
-installed, modified, or used for gameplay by the development tools. No executable
-or machine-specific paths are included in the source or packages.
+| Executable | SHA256 | Family |
+|---|---|---|
+| Steam v2.0.6 | `61bc1e030740cebc30cf1dad0c86cf65e39e12ff0500225821d684181e08d56b` | inline |
+| Steam v2.1.0 | `2bd3f115b959a8eee7e5c4b42b0142dd0025bd437e1014f92dfc60b9afee5479` | Steam 2.1.0 |
+| Supplied alternative layout | `2ecc5d19fe37f97e3f7f2467d652b299b5a47f010fa49fd803a49a4a6930a409` | outlined |
 
-## What differs
+Hashes identify the offline test inputs; there is no runtime whole-EXE hash allowlist. Each family must validate complete normalized function fingerprints, native references, globals and relevant layout witnesses. Changed, missing or ambiguous code refuses hooks. Address relocation can be tolerated; arbitrary future code changes require another reviewed profile.
 
-SendToStash: the item pool changes from `0x453060` to `0x451060`, and the
-container pool from `0x4db070` to `0x4d9070`. Three full transfer/selection
-fingerprints preserve the correct item-pool constant. The outlined quest witness
-calls a 74-byte stash-container helper; its complete fingerprint preserves
-`manager+0x80`, the container pool, 2048-entry blocks, 0x1d0 stride, and 0x10
-object offset. Both its caller and its call to the resolved native store getter
-must agree. The one callback implementation uses the selected container pool.
+All three inputs passed offline inspection and the corresponding code-mutation, ambiguity, relocation, native-reference and global-agreement tests. No game executable is included in the repository or releases. These tests read game images as non-executable data. Existing prior-release gameplay evidence on v2.0.6 remains historical; startup logs from the v2.1.0 candidates confirmed successful activation, but complete gameplay/save regression testing of these releases is still pending. The alternative input was not launched during this work.
 
-Hold Fire: 18 of 19 function fingerprints retain their normalized instruction
-sequences. The aim routine changes register allocation and outlines its fallback
-into a 47-byte helper. That helper loads `actor+0x1c0`, uses the transform at
-`+0x1d0` or the default transform, and copies twelve qwords to the output. Its
-complete fingerprint, caller reference, and unwind extent are required. The
-native policy, geometry, per-shot pointer checks, and hook sites are unchanged.
+Hold Fire validates 19 function/layout fingerprints, including its outlined aim helper where applicable, CapsuleComponent registration and shot/tick call relationships. Send to Stash validates 14 and selects an explicit per-family container-pool offset: 0x4db070 for Steam 2.0.6/2.1.0, 0x4d9070 for the alternative family. Callbacks and their behavior are shared.
 
-## Coverage and limits
+The checked-in `address_profile_210.h` is regenerated with `make_210_profile.py <audited-v2.1.0-exe>` in scripts/ (Hold Fire) or tools/ (Send to Stash). Development dependencies are Capstone 5.0.6 and pefile 2024.8.26. The generator enforces the reviewed input hash and uses `src/profile_210.json`; no game file is needed to build an ASI from the checked-in headers.
 
-An executable from another storefront or with unrelated edits may work when it
-matches either complete family. Function and global addresses may move. Neither
-family requires a whole-file hash at runtime. Missing, altered, or ambiguous
-relevant code refuses hooks and clears the resolved output.
-
-This does not recognize every possible compiler translation of equivalent game
-logic. New instruction sequences or layouts require another reviewed family;
-arbitrary similarity would not establish compatible ABI, ownership, or save
-behavior. Offline matching is not gameplay validation.
-
-Resolution runs only on the startup worker. The second family is tried only
-when the first does not validate. There are no scans, hashes, or family-selection
-branches in the firing or inventory callbacks. SendToStash reads one cached pool
-offset when validating the stash container. No UE4SS dependency is introduced.
-
-## Validation and next test
-
-Both input executables pass offline resolution, unrelated identity changes,
-function/global relocation, altered-code rejection, duplicate/ambiguous entries,
-reference disagreement, helper mutation, and helper-call mutation checks.
-SendToStash also rejects mixing the other family's item-pool constant into a
-transfer routine. Hold Fire tests both unwind-function and leaf relocation,
-CapsuleComponent-name changes, and malformed headers. Refusal clears outputs.
-
-The author confirmed both new ASIs work in-game on the installed Steam v2.0.6
-game on October 22, 2026. Earlier detailed gameplay checks covered inventory
-transfer, partial stacks, cancellation, weapon state, and save/reload for
-SendToStash; friendly hold-fire, hostile firing, and friendly-to-hostile
-transitions for Hold Fire. The development-only executable remains offline-only. Gameplay support for
-an additional release requires a separate permitted test installation.
-
-Release versions: SendToStash v0.1.0-beta.4 and Hold Fire v0.5.0-beta.2.
+See `compatibility-results.json` for sanitized local regression results. CI has no proprietary game inputs; it builds the release and runs binary-format, unsupported-host and packaging checks. Local offline results are separate from CI and gameplay evidence.

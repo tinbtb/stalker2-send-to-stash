@@ -2,7 +2,7 @@ import hashlib,json,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'tools/python-deps'))
 import pefile
-RUNTIME_STATUS='Two-family beta.4: author confirmed the new ASI works in-game on Steam v2.0.6 on 2026-10-22. Both fixtures validated offline; development-fixture gameplay untested. Earlier detailed regression checks remain documented; CI does not run the game.'
+RUNTIME_STATUS='v0.2.0: all three supplied layouts pass local offline resolution and rejection tests. Complete current-release gameplay regression remains pending.'
 asi=ROOT/'build/SendToStash.asi';pe=pefile.PE(str(asi))
 imports={d.dll.decode():[i.name.decode() if i.name else str(i.ordinal) for i in d.imports] for d in pe.DIRECTORY_ENTRY_IMPORT}
 exports=[s.name.decode() for s in pe.DIRECTORY_ENTRY_EXPORT.symbols if s.name]

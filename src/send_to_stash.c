@@ -61,7 +61,7 @@ static DWORD WINAPI initialize(void *unused) {
     if(s==MH_OK)s=MH_QueueEnableHook((void *)(g_base+RVA_SELECT_ACTION));
     if(s==MH_OK)s=MH_ApplyQueued();
     if(s!=MH_OK){MH_DisableHook((void *)(g_base+RVA_MENU_SET_DATA));MH_DisableHook((void *)(g_base+RVA_SELECT_ACTION));MH_Uninitialize();log_line("hook setup failed=%d; disabled",s);InterlockedExchange(&g_status,STATUS_ERROR);return 0;}
-    log_line("ready: startup=%llu ms; resolved-address callbacks; 2 hooks enabled; no runtime scanning",GetTickCount64()-began);
+    log_line("ACTIVE: SendToStash loaded successfully; startup=%llu ms; 2 hooks enabled; no runtime scanning",GetTickCount64()-began);
     InterlockedExchange(&g_status,STATUS_READY);return 0;
 }
 static void start_once(void) {

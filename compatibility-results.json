@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "date": "2026-10-26",
+  "execution": "offline PE data; game not launched",
+  "results": [
+    {
+      "Binary": "206",
+      "Mode": "--inspect",
+      "ExitCode": "0",
+      "SHA256": "61BC1E030740CEBC30CF1DAD0C86CF65E39E12FF0500225821D684181E08D56B"
+    },
+    {
+      "Binary": "206",
+      "Mode": "--image",
+      "ExitCode": "0",
+      "SHA256": "61BC1E030740CEBC30CF1DAD0C86CF65E39E12FF0500225821D684181E08D56B"
+    },
+    {
+      "Binary": "210",
+      "Mode": "--inspect",
+      "ExitCode": "0",
+      "SHA256": "2BD3F115B959A8EEE7E5C4B42B0142DD0025BD437E1014F92DFC60B9AFEE5479"
+    },
+    {
+      "Binary": "210",
+      "Mode": "--210",
+      "ExitCode": "0",
+      "SHA256": "2BD3F115B959A8EEE7E5C4B42B0142DD0025BD437E1014F92DFC60B9AFEE5479"
+    },
+    {
+      "Binary": "alternative",
+      "Mode": "--inspect",
+      "ExitCode": "0",
+      "SHA256": "2ECC5D19FE37F97E3F7F2467D652B299B5A47F010FA49FD803A49A4A6930A409"
+    },
+    {
+      "Binary": "alternative",
+      "Mode": "--outlined",
+      "ExitCode": "0",
+      "SHA256": "2ECC5D19FE37F97E3F7F2467D652B299B5A47F010FA49FD803A49A4A6930A409"
+    }
+  ],
+  "gameplay_status": "complete current-release gameplay regression pending",
+  "unit_checks": {
+    "unsupported_host_status": 1,
+    "pe_import_export_checks": "passed"
+  }
+}

@@ -1,10 +1,10 @@
-# Send to your stash
+# Send to your stash — v0.2.0
 
-Native ASI test build for S.T.A.L.K.E.R. 2. Adds **Send to your stash** to the existing inventory right-click menu, from anywhere. No UE4SS dependency and no replacement game assets.
+Native ASI mod for S.T.A.L.K.E.R. 2. Adds **Send to your stash** to the existing inventory right-click menu, from anywhere. No UE4SS dependency and no replacement game assets.
 
 The implementation uses the personal-stash container identified from the premium-edition Journalist flash-drive reward, then calls the game's existing item-transfer/stack-selection path. It only offers the action for carried items whose native Drop permission allows it and whose Unequip action is not visible.
 
-Beta `v0.1.0-beta.3` uses one startup resolver and one callback implementation. The author confirmed the unified ASI works in-game on Steam v2.0.6 on October 22, 2026. Earlier regression testing confirmed partial transfers, cancellation, save/reload persistence, and retention of weapon condition, ammunition, attachments, and upgrades. Gameplay on a different executable remains untested.
+The [three-family resolver](docs/COMPATIBILITY_FAMILIES.md) supports the audited Steam v2.0.6, Steam v2.1.0 and supplied alternative layouts. All pass offline regression checks. Successful hook installation logs `ACTIVE: SendToStash loaded successfully`. Previous gameplay evidence is historical; complete release gameplay/save checks remain pending.
 
 ## Current test
 
@@ -29,11 +29,11 @@ For regression testing on future game builds, use a manual save: right-click one
 
 ## Build and evidence
 
-Local startup-compatibility development is documented in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md). The **unified ASI** always resolves and validates addresses at startup, including on Steam v2.0.6, then uses one callback implementation. It has no whole-executable hash shortcut, separate constant-address callbacks, runtime scanning, or polling. Offline tests pass, and the author confirmed the unified build works in-game on Steam v2.0.6. The previously working ASI is backed up at `build/rollback-pre-unified/SendToStash.asi`. The published beta.3 rejects the alternate development fixture. The [two-family resolver](docs/COMPATIBILITY_FAMILIES.md) in beta.4 validates both executables offline; the author confirmed both new ASIs work in-game on Steam v2.0.6. Gameplay on the development-only fixture remains untested.
+The unified ASI resolves and validates native functions and layouts once during startup, then uses one shared callback implementation. Missing or ambiguous matches refuse hooks. See [compatibility evidence](docs/COMPATIBILITY_FAMILIES.md) and [release notes](RELEASE_NOTES.md).
 
 GitHub Actions builds `SendToStash.asi` on Windows using the same script, Zig 0.15.2, vendored MinHook, and checked-in game profile. Each push, pull request, or manual run produces a `SendToStash-windows-x64` artifact containing both ZIP variants and their SHA-256 checksums. Download it from the run's Artifacts section. `tools/package.py` downloads the official loader, verifies its pinned archive and DLL checksums, and verifies both ZIPs.
 
-Pushing a version tag such as `v0.1.0-beta.3` also publishes a GitHub prerelease after all build checks pass. Release assets include both ZIP variants and their checksum file. To publish manually, run this workflow with an existing `v*` tag selected. Existing releases are not overwritten. Branch builds only upload Actions artifacts. Beta builds remain marked as prereleases.
+A version tag such as `v0.2.0` publishes tested CI ZIPs and checksums. Tags containing a prerelease suffix are marked as prereleases; plain version tags are regular releases. Branch builds upload Actions artifacts. Existing releases are not overwritten.
 
 CI checks the DLL exports/imports and runs the unsupported-host guard. It does not require or distribute the game executable, and does not test gameplay. Debug information includes build paths, so the CI ASI is not guaranteed byte-identical to a local build. The menu label is currently English-only, without a localization SID.
 

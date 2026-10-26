@@ -30,6 +30,9 @@ def main():
     out.mkdir(exist_ok=True)
     common = {
         'SendToStash.asi': asi,
+        'SendToStash/RELEASE_NOTES.md': (ROOT / 'RELEASE_NOTES.md').read_bytes(),
+        'SendToStash/PORT_210.md': (ROOT / 'PORT_210.md').read_bytes(),
+        'SendToStash/compatibility-results.json': (ROOT / 'compatibility-results.json').read_bytes(),
         'SendToStash/README.md': (ROOT / 'README.md').read_bytes(),
         'SendToStash/docs/COMPATIBILITY_FAMILIES.md': (ROOT / 'docs/COMPATIBILITY_FAMILIES.md').read_bytes(),
         'SendToStash/MinHook-LICENSE.txt': (ROOT / 'third_party/minhook/LICENSE.txt').read_bytes(),

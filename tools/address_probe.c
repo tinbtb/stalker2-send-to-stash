@@ -8,6 +8,7 @@
 #include "address_resolver.h"
 #include "address_profile.h"
 #include "address_profile_development.h"
+#include "address_profile_210.h"
 #include "pe_data_image.h"
 static void logger(const char *fmt,...) {
     va_list ap;va_start(ap,fmt);vprintf(fmt,ap);va_end(ap);puts("");
@@ -34,16 +35,18 @@ int wmain(int argc,wchar_t **argv) {
         }
         VirtualFree(image,0,MEM_RELEASE);return ok?0:10;
     }
-    if(wcscmp(argv[1],L"--image") && wcscmp(argv[1],L"--outlined")){VirtualFree(image,0,MEM_RELEASE);return 2;}
+    if(wcscmp(argv[1],L"--image") && wcscmp(argv[1],L"--outlined") && wcscmp(argv[1],L"--210")){VirtualFree(image,0,MEM_RELEASE);return 2;}
     BOOL outlined=!wcscmp(argv[1],L"--outlined") || !wcscmp(argv[1],L"--outlined-leaf");
-    const StsProfile *profiles=outlined?dev_sts_profiles:sts_profiles;
-    const StsReference *edges=outlined?dev_sts_edges:sts_edges;
-    const StsReference *global_refs=outlined?dev_sts_manager_refs:sts_manager_refs;
-    unsigned edge_count=outlined?sizeof(dev_sts_edges)/sizeof(*dev_sts_edges):sizeof(sts_edges)/sizeof(*sts_edges);
-    unsigned global_count=outlined?sizeof(dev_sts_manager_refs)/sizeof(*dev_sts_manager_refs):sizeof(sts_manager_refs)/sizeof(*sts_manager_refs);
+    BOOL updated=!wcscmp(argv[1],L"--210");
+    const StsProfile *profiles=updated?v210_sts_profiles:outlined?dev_sts_profiles:sts_profiles;
+    const StsReference *edges=updated?v210_sts_edges:outlined?dev_sts_edges:sts_edges;
+    const StsReference *global_refs=updated?v210_sts_manager_refs:outlined?dev_sts_manager_refs:sts_manager_refs;
+    unsigned edge_count=updated?sizeof(v210_sts_edges)/sizeof(*v210_sts_edges):outlined?sizeof(dev_sts_edges)/sizeof(*dev_sts_edges):sizeof(sts_edges)/sizeof(*sts_edges);
+    unsigned global_count=updated?sizeof(v210_sts_manager_refs)/sizeof(*v210_sts_manager_refs):outlined?sizeof(dev_sts_manager_refs)/sizeof(*dev_sts_manager_refs):sizeof(sts_manager_refs)/sizeof(*sts_manager_refs);
     uint32_t rvas[STS_PROFILE_COUNT];uintptr_t manager;
     ULONGLONG began=GetTickCount64();
     if(!sts_resolve((HMODULE)image,rvas,&manager,logger))return 10;
+    if(sts_container_pool_offset!=(outlined?0x4d9070u:0x4db070u))return 42;
     printf("Original data image resolved in %llu ms\n",GetTickCount64()-began);
     if(outlined) {
         uint32_t from=STS_STASH_LAYOUT_WITNESS;

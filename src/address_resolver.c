@@ -7,6 +7,7 @@
 
 #include "address_profile.h"
 #include "address_profile_development.h"
+#include "address_profile_210.h"
 
 uint32_t sts_container_pool_offset;
 typedef struct {
@@ -16,6 +17,7 @@ typedef struct {
     const StsProfile *helper;
     StsReference helper_call;
     const char *name;
+    uint32_t container_pool_offset;
 } LayoutFamily;
 #define COUNT(a) (sizeof(a)/sizeof(*(a)))
 
@@ -192,11 +194,15 @@ done:
 }
 
 BOOL sts_resolve(HMODULE module,uint32_t rvas[STS_PROFILE_COUNT],uintptr_t *manager,StsLog log) {
-    static const LayoutFamily families[] = {{sts_profiles,sts_edges,sts_manager_refs,COUNT(sts_edges),COUNT(sts_manager_refs),NULL,{0},"inline-layout"},{dev_sts_profiles,dev_sts_edges,dev_sts_manager_refs,COUNT(dev_sts_edges),COUNT(dev_sts_manager_refs),&dev_helper_profile,{STS_STASH_LAYOUT_WITNESS,665,669,0},"outlined-layout"}};
+    static const LayoutFamily families[] = {
+        {sts_profiles,sts_edges,sts_manager_refs,COUNT(sts_edges),COUNT(sts_manager_refs),NULL,{0},"inline-layout",0x4db070},
+        {dev_sts_profiles,dev_sts_edges,dev_sts_manager_refs,COUNT(dev_sts_edges),COUNT(dev_sts_manager_refs),&dev_helper_profile,{STS_STASH_LAYOUT_WITNESS,665,669,0},"outlined-layout",0x4d9070},
+        {v210_sts_profiles,v210_sts_edges,v210_sts_manager_refs,COUNT(v210_sts_edges),COUNT(v210_sts_manager_refs),NULL,{0},"steam-2.1.0",0x4db070}
+    };
     sts_container_pool_offset=0;
     for(unsigned i=0;i<COUNT(families);i++) {
         if(resolve_family(module,rvas,manager,log,&families[i])) {
-            sts_container_pool_offset=i?0x4d9070:0x4db070;
+            sts_container_pool_offset=families[i].container_pool_offset;
             log("resolver: coherent %s family; container pool=0x%x",families[i].name,sts_container_pool_offset);
             return TRUE;
         }
